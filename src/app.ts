@@ -9,11 +9,13 @@ import { requestContext } from './middlewares/requestContext';
 import { apiResponse } from './middlewares/apiResponse';
 import { apiLimiter } from './middlewares/rateLimiter';
 import { notFound } from './middlewares/notFound';
-import { errorHandler } from './middlewares/errorHandler';
+import { createErrorHandler } from './middlewares/errorHandler';
 import { createHealthRoutes } from './routes/health.routes';
 import { createUserRoutes } from './routes/user.routes';
 import { createContainer, type AppContainer, type ContainerOptions } from './bootstrap/container';
 import { AllowListCorsPolicy, type ICorsPolicy } from './providers/cors/ICorsPolicy';
+import { createHttpMetrics } from './observability/metrics/httpMetrics';
+import { createMetricsRoutes } from './routes/metrics.routes';
 
 export interface CreateAppOptions extends ContainerOptions {
   container?: AppContainer;
@@ -30,7 +32,12 @@ export function createApp(options: CreateAppOptions = {}): Express {
   if (config.TRUST_PROXY) app.set('trust proxy', 1);
 
   app.use(requestContext);
-  app.use(pinoHttp({ logger, quietReqLogger: true }));
+  app.use(pinoHttp({
+    logger,
+    quietReqLogger: true,
+    genReqId: (_req, res) => String(res.locals.requestId ?? 'unknown'),
+    customLogLevel: (_req, res, error) => error || res.statusCode >= 500 ? 'error' : res.statusCode >= 400 ? 'warn' : 'info',
+  }));
   app.use((req, res, next) => {
     const startedAt = performance.now();
     res.on('finish', () => {
@@ -70,14 +77,16 @@ export function createApp(options: CreateAppOptions = {}): Express {
   app.use(express.json({ limit: '1mb' }));
   app.use(express.urlencoded({ extended: false, limit: '1mb' }));
   app.use(apiResponse);
-  app.use(apiLimiter);
+  if (config.METRICS_ENABLED) app.use(createHttpMetrics(container.metrics));
 
   app.use(createHealthRoutes(container.healthService));
+  app.use(createMetricsRoutes(container.metrics));
+  app.use(apiLimiter);
   app.use('/api/v1/users', createUserRoutes(container.userService));
   options.registerRoutes?.(app, container);
 
   app.use(notFound);
-  app.use(errorHandler);
+  app.use(createErrorHandler(container.errorMonitor));
 
   return app;
 }

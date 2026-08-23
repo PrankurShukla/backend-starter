@@ -1,12 +1,12 @@
 import type { RequestHandler } from 'express';
-import { z, type ZodTypeAny } from 'zod';
+import { z, type ZodType } from 'zod';
 import { AppError } from '../errors/AppError';
 import { ErrorCode } from '../constants/errorCodes';
 
 export interface RequestSchema {
-  body?: ZodTypeAny;
-  query?: ZodTypeAny;
-  params?: ZodTypeAny;
+  body?: ZodType<unknown>;
+  query?: ZodType<Record<string, unknown>>;
+  params?: ZodType<Record<string, unknown>>;
 }
 
 export function validate(schema: RequestSchema): RequestHandler {

@@ -14,6 +14,25 @@ const environmentSchema = z.object({
   RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(15 * 60 * 1000),
   RATE_LIMIT_MAX: z.coerce.number().int().positive().default(300),
   SHUTDOWN_TIMEOUT_MS: z.coerce.number().int().positive().default(10_000),
+  SENTRY_DSN: z.string().url().or(z.literal('')).default(''),
+  SENTRY_TRACES_SAMPLE_RATE: z.coerce.number().min(0).max(1).default(0.1),
+  OTEL_ENABLED: booleanFromString,
+  OTEL_EXPORTER_OTLP_ENDPOINT: z.string().url().default('http://localhost:4318'),
+  OTEL_EXPORT_INTERVAL_MS: z.coerce.number().int().positive().default(60_000),
+  METRICS_ENABLED: z.string().default('true').transform(value => value === 'true'),
+  METRICS_TOKEN: z.string().default(''),
+  OUTBOUND_TIMEOUT_MS: z.coerce.number().int().positive().default(10_000),
+  OUTBOUND_RETRY_ATTEMPTS: z.coerce.number().int().min(1).max(10).default(3),
+  CIRCUIT_BREAKER_FAILURE_THRESHOLD: z.coerce.number().int().positive().default(5),
+  CIRCUIT_BREAKER_RESET_TIMEOUT_MS: z.coerce.number().int().positive().default(30_000),
+}).superRefine((value, context) => {
+  if (value.NODE_ENV === 'production' && value.METRICS_ENABLED && !value.METRICS_TOKEN) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['METRICS_TOKEN'],
+      message: 'METRICS_TOKEN is required when metrics are enabled in production',
+    });
+  }
 });
 
 const parsed = environmentSchema.safeParse(process.env);

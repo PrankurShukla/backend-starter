@@ -1,8 +1,9 @@
 import type { RequestHandler } from 'express';
 import { ErrorCode } from '../constants/errorCodes';
 
-function meta(requestId: string) {
-  return { requestId, timestamp: new Date().toISOString() };
+function meta(requestId: unknown) {
+  const normalizedRequestId = typeof requestId === 'string' ? requestId : 'unknown';
+  return { requestId: normalizedRequestId, timestamp: new Date().toISOString() };
 }
 
 export const apiResponse: RequestHandler = (_req, res, next) => {
