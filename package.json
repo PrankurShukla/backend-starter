@@ -3,20 +3,41 @@
   "version": "0.1.0",
   "private": true,
   "description": "Vendor-neutral production backend starter built with TypeScript and Express",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "dist/public.js",
+  "types": "dist/public.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/public.d.ts",
+      "require": "./dist/public.js",
+      "default": "./dist/public.js"
+    }
+  },
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/index.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint src tests vitest.config.ts",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "quality": "npm run typecheck && npm run lint && npm run test:coverage && npm run build",
+    "audit:production": "npm audit --omit=dev --audit-level=high"
   },
   "engines": {
     "node": ">=20.9.0"
   },
   "dependencies": {
+    "@opentelemetry/api": "^1.9.1",
+    "@opentelemetry/exporter-metrics-otlp-http": "^0.221.0",
+    "@opentelemetry/exporter-trace-otlp-http": "^0.221.0",
+    "@opentelemetry/instrumentation-express": "^0.69.0",
+    "@opentelemetry/instrumentation-http": "^0.221.0",
+    "@opentelemetry/instrumentation-pino": "^0.67.0",
+    "@opentelemetry/instrumentation-undici": "^0.31.0",
+    "@opentelemetry/sdk-metrics": "^2.10.0",
+    "@opentelemetry/sdk-node": "^0.221.0",
+    "@sentry/node": "^10.70.0",
     "cors": "^2.8.5",
     "dotenv": "^17.0.1",
     "express": "^5.1.0",
@@ -25,17 +46,22 @@
     "hpp": "^0.2.3",
     "pino": "^9.7.0",
     "pino-http": "^10.5.0",
+    "prom-client": "^15.1.3",
     "zod": "^3.25.76"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
     "@types/hpp": "^0.2.6",
     "@types/node": "^24.0.8",
     "@types/supertest": "^6.0.3",
+    "@vitest/coverage-v8": "^3.2.7",
+    "eslint": "^10.9.0",
     "supertest": "^7.1.4",
     "tsx": "^4.20.3",
     "typescript": "^5.8.3",
+    "typescript-eslint": "^8.67.0",
     "vitest": "^3.2.4"
   }
 }

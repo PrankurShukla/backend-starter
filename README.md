@@ -7,16 +7,22 @@ A standalone, vendor-neutral TypeScript backend foundation extracted from the pr
 - Strict TypeScript and validated environment configuration
 - Structured JSON logs with sensitive-field redaction
 - Request and correlation IDs using `AsyncLocalStorage`
+- Optional Sentry error reporting through a replaceable interface
+- Vendor-neutral OpenTelemetry tracing and OTLP metric export
+- Protected Prometheus-compatible runtime and HTTP metrics
 - Standard success and error response envelopes
 - Stable error-code constants
 - DTO runtime validation with Zod
 - Global 404 and error handling
 - CORS policy interface, security headers, HPP protection and rate limiting
 - Liveness and dependency-aware readiness endpoints
-- Graceful shutdown and process-level failure logging
+- Coordinated graceful shutdown for HTTP, telemetry and application resources
+- Audit logging contract with a structured-log adapter
+- Timeout, retry, backoff, circuit-breaker and idempotency-aware HTTP utilities
 - Replaceable email, storage, queue, token and password interfaces
 - Repository-driven example user module
-- Integration tests, Docker and Railway configuration
+- Coverage-enforced tests, strict linting, Docker and Railway configuration
+- GitHub Actions quality gates and Dependabot updates
 
 School, fee, attendance and other EMS business rules are deliberately excluded.
 
@@ -36,6 +42,8 @@ Verify the service:
 curl http://localhost:5000/health
 curl http://localhost:5000/ready
 ```
+
+Metrics are available in development at `http://localhost:5000/metrics`. Production requires a bearer token when metrics are enabled.
 
 Create an example user:
 
@@ -63,6 +71,7 @@ Route → Validation → Controller → Service → Repository → Database adap
 
 ```text
 src/
+├── audit/           Security-relevant audit event contract
 ├── bootstrap/       Dependency construction
 ├── config/          Environment and logging
 ├── constants/       Stable application constants
@@ -70,14 +79,18 @@ src/
 ├── errors/          Typed operational errors
 ├── middlewares/     HTTP and security middleware
 ├── models/          DTOs and runtime schemas
+├── observability/   Error monitoring, metrics and tracing
 ├── providers/       Vendor-neutral external-service contracts
 ├── repositories/    Database contracts and adapters
 ├── routes/          Express routes
+├── resilience/      Timeouts, retries and circuit breaking
 ├── services/        Business logic
+├── shutdown/        Coordinated resource cleanup
 ├── types/           Shared TypeScript types
 ├── utils/           Small reusable helpers
-├── app.ts            Application factory
-└── index.ts          Process startup and shutdown
+├── app.ts           Application factory
+├── server.ts        HTTP lifecycle and process failure handling
+└── index.ts         Telemetry-first process bootstrap
 ```
 
 ## Dynamic CORS without coupling the core
@@ -117,10 +130,20 @@ const app = createApp({
 ## Quality checks
 
 ```bash
-npm run typecheck
-npm test
-npm run build
+npm run quality
+npm run audit:production
 ```
+
+`quality` runs type checking, strict linting, coverage-enforced tests and the production build. CI also builds the production container.
+
+## Production operations
+
+- [Operations and deployment runbook](docs/OPERATIONS.md)
+- [Production architecture](docs/PRODUCTION_ARCHITECTURE.md)
+- [Security policy](SECURITY.md)
+- [Adding a module](docs/ADDING_A_MODULE.md)
+
+All monitoring integrations are optional locally and configured through environment variables. Production applications must connect logs, errors, metrics and traces to destinations they operate and must replace the in-memory example repository.
 
 ## Extraction roadmap
 

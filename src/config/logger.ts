@@ -3,7 +3,7 @@ import { config } from './environment';
 
 export const logger: Logger = pino({
   name: config.SERVICE_NAME,
-  level: config.LOG_LEVEL,
+  level: config.NODE_ENV === 'test' ? 'silent' : config.LOG_LEVEL,
   base: {
     service: config.SERVICE_NAME,
     version: config.SERVICE_VERSION,
