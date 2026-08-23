@@ -138,6 +138,7 @@ npm run audit:production
 
 ## Production operations
 
+- [Beginner guide: from CRUD to this starter](docs/BEGINNER_GUIDE.md)
 - [Operations and deployment runbook](docs/OPERATIONS.md)
 - [Production architecture](docs/PRODUCTION_ARCHITECTURE.md)
 - [Security policy](SECURITY.md)
