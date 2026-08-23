@@ -16,6 +16,7 @@ import { createContainer, type AppContainer, type ContainerOptions } from './boo
 import { AllowListCorsPolicy, type ICorsPolicy } from './providers/cors/ICorsPolicy';
 import { createHttpMetrics } from './observability/metrics/httpMetrics';
 import { createMetricsRoutes } from './routes/metrics.routes';
+import { createAuthRoutes } from './routes/auth.routes';
 
 export interface CreateAppOptions extends ContainerOptions {
   container?: AppContainer;
@@ -82,7 +83,10 @@ export function createApp(options: CreateAppOptions = {}): Express {
   app.use(createHealthRoutes(container.healthService));
   app.use(createMetricsRoutes(container.metrics));
   app.use(apiLimiter);
-  app.use('/api/v1/users', createUserRoutes(container.userService));
+  app.use('/api/v1/users', createUserRoutes(container.userService, container.tokenProvider));
+  if (config.AUTH_ENABLED) {
+    app.use('/api/v1/auth', createAuthRoutes(container.authService, container.userService, container.tokenProvider));
+  }
   options.registerRoutes?.(app, container);
 
   app.use(notFound);

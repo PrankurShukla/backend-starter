@@ -16,8 +16,8 @@ describe('backend starter', () => {
 
   it('validates DTOs before the controller executes', async () => {
     const response = await request(app)
-      .post('/api/v1/users')
-      .send({ email: 'not-an-email', firstName: '', lastName: 'User' })
+      .post('/api/v1/auth/register')
+      .send({ email: 'not-an-email', password: 'a-long-valid-password', firstName: '', lastName: 'User' })
       .expect(422);
 
     expect(response.body.success).toBe(false);
@@ -26,12 +26,13 @@ describe('backend starter', () => {
 
   it('uses a repository-backed service for the example module', async () => {
     const created = await request(app)
-      .post('/api/v1/users')
-      .send({ email: 'Test@Example.com', firstName: 'Test', lastName: 'User' })
+      .post('/api/v1/auth/register')
+      .send({ email: 'Test@Example.com', password: 'a-secure-test-password', firstName: 'Test', lastName: 'User' })
       .expect(201);
 
     const fetched = await request(app)
-      .get(`/api/v1/users/${created.body.data.id}`)
+      .get(`/api/v1/users/${created.body.data.user.id}`)
+      .set('authorization', `Bearer ${created.body.data.accessToken}`)
       .expect(200);
 
     expect(fetched.body.data.email).toBe('test@example.com');

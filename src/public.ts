@@ -14,3 +14,15 @@ export type { IPasswordHasher, ITokenProvider, TokenPayload } from './providers/
 export type { IHealthCheck, HealthCheckResult } from './providers/health/IHealthCheck';
 export type { IErrorMonitor, ErrorMonitorContext } from './observability/error-monitoring';
 export type { IAuditLogger, AuditEvent, AuditOutcome } from './audit/IAuditLogger';
+export type { IUserRepository, CreateUserRecord } from './repositories/IUserRepository';
+export type { IRefreshSessionRepository, RefreshSessionRecord } from './repositories/IRefreshSessionRepository';
+export { ScryptPasswordHasher } from './infrastructure/auth/ScryptPasswordHasher';
+export { JwtTokenProvider } from './infrastructure/auth/JwtTokenProvider';
+export { SmtpEmailProvider } from './infrastructure/email/SmtpEmailProvider';
+export { ConsoleEmailProvider } from './infrastructure/email/ConsoleEmailProvider';
+export { QueuedEmailProvider } from './infrastructure/email/QueuedEmailProvider';
+export { BullMqQueueProvider } from './infrastructure/queue/BullMqQueueProvider';
+export { InlineQueueProvider } from './infrastructure/queue/InlineQueueProvider';
+export { JobHandlerRegistry } from './infrastructure/queue/JobHandlerRegistry';
+export { LocalStorageProvider } from './infrastructure/storage/LocalStorageProvider';
+export { S3StorageProvider } from './infrastructure/storage/S3StorageProvider';

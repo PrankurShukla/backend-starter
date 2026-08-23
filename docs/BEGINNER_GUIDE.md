@@ -46,6 +46,7 @@ Consider this request:
 ```http
 POST /api/v1/users
 Content-Type: application/json
+Authorization: Bearer <admin-access-token>
 
 {
   "email": "user@example.com",
@@ -57,13 +58,14 @@ Content-Type: application/json
 It moves through the application in this order:
 
 1. `user.routes.ts` matches `POST /api/v1/users`.
-2. `validate(...)` checks the body using `createUserSchema`.
-3. `user.controller.ts` calls `userService.create(...)`.
-4. `user.service.ts` checks whether the email already exists.
-5. `IUserRepository` describes the required database operations.
-6. `InMemoryUserRepository` performs those operations in memory.
-7. The controller calls `res.success(...)` to return the standard response format.
-8. If any layer throws an error, the global error handler produces the error response.
+2. Authentication verifies the access token and authorization requires the `ADMIN` role.
+3. `validate(...)` checks the body using `createUserSchema`.
+4. `user.controller.ts` calls `userService.create(...)`.
+5. `user.service.ts` checks whether the email already exists.
+6. `IUserRepository` describes the required database operations.
+7. The configured repository performs those operations in memory or PostgreSQL.
+8. The controller calls `res.success(...)` to return the standard response format.
+9. If any layer throws an error, the global error handler produces the error response.
 
 The production components around this flow automatically add request IDs, logs, metrics, security headers, rate limiting and error reporting.
 
@@ -145,7 +147,7 @@ This is useful because:
 - Prisma can be replaced without rewriting controllers and business rules.
 - Database-specific code stays in one layer.
 
-`InMemoryUserRepository` is only a working example. It loses all data when the process restarts. Replace it with a persistent implementation before production.
+`InMemoryUserRepository` is only a development adapter. It loses all data when the process restarts. Production configuration requires the included Prisma/PostgreSQL implementation (or another persistent implementation of the same repository contracts).
 
 ### Domain types
 
