@@ -7,6 +7,7 @@ export interface TokenPayload {
   subject: string;
   roles?: string[];
   tenantId?: string;
+  sessionId?: string;
 }
 
 export interface ITokenProvider {

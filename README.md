@@ -28,13 +28,21 @@ School, fee, attendance and other EMS business rules are deliberately excluded.
 
 ## Quick start
 
-Node.js 20.9 or newer is required.
+Node.js 20.19 or newer is required.
 
 ```bash
 npm install
 cp .env.example .env
 npm run dev
 ```
+
+To exercise the production-shaped stack locally (PostgreSQL, Redis, API and worker):
+
+```bash
+docker compose up --build
+```
+
+The default `.env.example` deliberately uses in-memory persistence, inline jobs, console email and local storage for a simple first run. Environment validation rejects those unsafe defaults when `NODE_ENV=production`.
 
 Verify the service:
 
@@ -45,12 +53,12 @@ curl http://localhost:5000/ready
 
 Metrics are available in development at `http://localhost:5000/metrics`. Production requires a bearer token when metrics are enabled.
 
-Create an example user:
+Create an account:
 
 ```bash
-curl -X POST http://localhost:5000/api/v1/users \
+curl -X POST http://localhost:5000/api/v1/auth/register \
   -H 'content-type: application/json' \
-  -d '{"email":"user@example.com","firstName":"Example","lastName":"User"}'
+  -d '{"email":"user@example.com","password":"a-secure-development-password","firstName":"Example","lastName":"User"}'
 ```
 
 ## Request flow
@@ -113,7 +121,7 @@ The reusable core never needs to know about tenants or a particular database.
 
 ## Replacing the example repository
 
-`InMemoryUserRepository` makes the starter runnable without a database. Replace it in `bootstrap/container.ts` with a Prisma, Drizzle, MongoDB or other implementation of `IUserRepository`. `UserService` and the HTTP layer do not change.
+`InMemoryUserRepository` makes the starter runnable without infrastructure. Set `DATABASE_PROVIDER=prisma` and `DATABASE_URL` to use the included production PostgreSQL implementation. A Drizzle, MongoDB or other implementation can replace `IUserRepository`; `UserService` and the HTTP layer do not change.
 
 ## Adding application routes
 
@@ -139,6 +147,8 @@ npm run audit:production
 ## Production operations
 
 - [Beginner guide: from CRUD to this starter](docs/BEGINNER_GUIDE.md)
+- [Adapters, local stack and deployment](docs/ADAPTERS_AND_DEPLOYMENT.md)
+- [EMS migration strategy](docs/EMS_MIGRATION.md)
 - [Operations and deployment runbook](docs/OPERATIONS.md)
 - [Production architecture](docs/PRODUCTION_ARCHITECTURE.md)
 - [Security policy](SECURITY.md)
@@ -146,9 +156,9 @@ npm run audit:production
 
 All monitoring integrations are optional locally and configured through environment variables. Production applications must connect logs, errors, metrics and traces to destinations they operate and must replace the in-memory example repository.
 
-## Extraction roadmap
+## Future packaging roadmap
 
-This directory is Phase 1: the standalone template. After it has been used by another project, stable pieces can be published as:
+This repository is a complete, copyable starter with working default adapters. After those contracts have been proven across multiple applications, stable pieces may optionally be published as:
 
 ```text
 @prankur/backend-core

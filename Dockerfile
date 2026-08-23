@@ -5,6 +5,7 @@ RUN npm ci
 
 FROM dependencies AS build
 COPY tsconfig.json ./
+COPY prisma ./prisma
 COPY src ./src
 RUN npm run build
 
@@ -15,11 +16,11 @@ RUN apk add --no-cache dumb-init \
     && addgroup -S nodeapp \
     && adduser -S nodeapp -G nodeapp
 COPY package*.json ./
-RUN npm ci --omit=dev && npm cache clean --force
+COPY prisma ./prisma
+RUN npm ci --omit=dev && npm run generate && npm cache clean --force
 COPY --from=build /app/dist ./dist
+RUN mkdir -p /app/uploads && chown -R nodeapp:nodeapp /app/uploads
 USER nodeapp
 EXPOSE 5000
-HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
-  CMD wget --quiet --tries=1 --spider http://127.0.0.1:5000/health || exit 1
 ENTRYPOINT ["dumb-init", "--"]
 CMD ["node", "dist/index.js"]

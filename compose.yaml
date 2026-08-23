@@ -1,0 +1,70 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: backend_starter
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d backend_starter"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build: .
+    command: ["sh", "-c", "npm run db:deploy && node dist/index.js"]
+    environment: &app-environment
+      NODE_ENV: development
+      DATABASE_PROVIDER: prisma
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/backend_starter
+      QUEUE_PROVIDER: bullmq
+      REDIS_URL: redis://redis:6379
+      EMAIL_PROVIDER: console
+      STORAGE_PROVIDER: local
+      LOCAL_STORAGE_PATH: /app/uploads
+      ACCESS_TOKEN_SECRET: local-access-token-secret-change-before-production
+      REFRESH_TOKEN_SECRET: local-refresh-token-secret-change-before-production
+    ports:
+      - "5000:5000"
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:5000/health"]
+      interval: 10s
+      timeout: 3s
+      start_period: 10s
+      retries: 5
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  worker:
+    build: .
+    command: ["node", "dist/workers/background.worker.js"]
+    environment: *app-environment
+    depends_on:
+      api:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  postgres-data:
+  redis-data:

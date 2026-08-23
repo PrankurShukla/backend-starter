@@ -32,12 +32,12 @@ Workers should run as separate deployable processes and consume durable queues. 
 
 ## What applications must supply
 
-The starter cannot choose application-specific security or data rules. Every generated application must supply:
+The starter supplies PostgreSQL/Prisma persistence, token authentication, BullMQ jobs, SMTP email and S3-compatible storage defaults. It cannot choose application-specific security or data rules. Every generated application must still supply:
 
-- Persistent repository implementations and migrations
-- Authentication and authorization policy
+- Domain models and migrations beyond the included user/auth example
+- Application-specific roles and authorization policy
 - Secret management
 - Domain-specific DTOs and business rules
 - Data retention, backup and recovery
-- Provider credentials and alert destinations
+- Provider credentials, email templates and alert destinations
 - Load objectives and capacity testing

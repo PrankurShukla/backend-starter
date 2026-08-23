@@ -1,8 +1,14 @@
 import type { CreateUserDto } from '../models/user.dto';
-import type { User } from '../types/user';
+import type { User, UserCredentials } from '../types/user';
+
+export interface CreateUserRecord extends CreateUserDto {
+  passwordHash?: string;
+  roles?: string[];
+}
 
 export interface IUserRepository {
   findById(id: string): Promise<User | null>;
   findByEmail(email: string): Promise<User | null>;
-  create(input: CreateUserDto): Promise<User>;
+  findCredentialsByEmail(email: string): Promise<UserCredentials | null>;
+  create(input: CreateUserRecord): Promise<User>;
 }
